@@ -14,6 +14,7 @@ edit_data <- function(inputFile, outputFile) {
   data2$Converted <- gsub('G','3',data2$Converted)
   data2$Converted <- gsub('T','4',data2$Converted)
   data2$Converted <- gsub('No 2all','NA_NA',data2$Converted) #downstream programs like NA_NA better
+  data3 <- cast(data2,Name~Assay) 
   write.csv(data3,outputFile,row.names=FALSE) #exports data
 }
 
