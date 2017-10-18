@@ -98,64 +98,7 @@ combined <- read.csv("combined_greaterthan10.csv",header=TRUE)
 library(splitstackshape)
 library(allelematch)
 
-cSplit(combined,2:164, sep="_") -> output
+cols <- ncol(mydf)
 
-falcon_allelematch <- amDataset(output,indexColumn ="Name",ignoreColumn= 1:1, missingCode="NA")
+cSplit(combined, 2:cols, sep="_") -> output
 
-unique_falcon_allelematch <- amUnique(falcon_allelematch, alleleMismatch=7)
-
-summary(unique_falcon_allelematch, html="unique_falcon_allelematch.html")
-summary(unique_falcon_allelematch, csv="falcon_allelematch_allresults.csv")
-summary(unique_falcon_allelematch, csv="falcon_allelematch_uniqueindiv.csv",uniqueOnly=TRUE)
-
-uniqueindiv = read.csv("falcon_allelematch_uniqueindiv_edited.csv")
-siteinfo = read.csv("falcon_field_data_for_R.csv")
-total <- merge(siteinfo,uniqueindiv,by="DNA_ID")
-write.csv(total,"submission3_allelematch_uniqueindiv_siteinfo.csv")
-
-library(related)
-input <- readgenotypedata("submission3_forRelated.txt")
-outfile <- coancestry(input$gdata,lynchli=1,quellergt=1,ritland=1, wang=1,lynchrd=1)
-write.csv(outfile$relatedness,"outfile.csv")
-
-#To calculate LD for loci:
-#Use PGDSpider to generate a ped file from a GDA file.
-library(snpStats)
-sample <- read.pedfile("sub4_forSNPstats.ped", snps="pedsnps.txt")
-ldDprime_r2 = ld(x=sample$genotypes, depth=(ncol(sample$genotypes)-1), stats="R.squared", symmetric=TRUE)
-d = as.matrix(ldDprime_r2)
-write.csv(d,"d.csv")
-
-Linkage (d > 0.20)
-
-1612964_1419399_ASPN_selection X 1612964_1456785_ECM2_nonsyn -> d = 0.27 (remove 1612964_1419399_ASPN_selection)
-1615281_1321851_AGA_selection X 1612891_582304_AIM1_selection -> d = 0.23 (remove 1612891_582304_AIM1_selection)
-
-#Pairwise locus Fst values from diveRsity in R:
-#Export genepop file from GenAlEx, population names can not have spaces.
-
-diff_stats <- diffCalc(infile="genepop_for_diveRsity.txt",pairwise=TRUE, fst=TRUE)
-diff_stats
-write.csv(diff_stats$pw_locus,"diff_stats.csv")
-write.csv(diff_stats$pairwise,"diff_stats_pairwise.csv")
-
-#Alternatively for 95% CIs:
-diff_stats <- diffCalc(infile="genepop_for_diveRsity.txt",pairwise=TRUE, fst=TRUE, bs_pairwise=TRUE, boots =999)
-
-
-#Identifying outlier loci with BAYESCAN:
-
-#Used PGDSpider to convert genepop file to Bayescan file to test for selection based on FST values.
-#Used Bayescan to test for selection based on F statistics.
-
-#Parameters:
-
-
-#To look at output from Bayescan:
-#Copy and paste plot_R.r script into R.
-mydata2=read.table(file.choose(),colClasses="numeric")
-plot_bayescan(mydata2,FDR=0.05)
-
-Outlier locus = 102 = X1613580_160905_A2ML1_nonsyn_1 = SNP42 in Set2 for Fluidigm = GenAlEx also found significant departures from HW for this marker
-
-#Reviewed results in Fluidigm SNP genotyping analysis software and they look pretty solid!  Clustering looks good.  Seems safe to move forward.
